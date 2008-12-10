@@ -1,0 +1,17 @@
+<html>
+	<head>
+		<title>InStockDomains</title>
+		<script type="text/javascript" src="/scripts/jquery/jquery.js"></script>
+		<script type="text/javascript" src="/scripts/jquery/jquery_comet.js"></script>
+		<script type="text/javascript" src="/scripts/spinner/comet.js"></script>		
+	</head>
+	
+	<body>
+		<div id="results">Loading...</div>
+	</body>
+	<script type="text/javascript">
+		jQuery(document).ready(function(){ 
+			comet_getResults('{{ query }}');
+		});
+	</script>
+</html>
