@@ -1,0 +1,11 @@
+<form action="/spinner/search/" method="get">
+	<input type="text" name="q" value="{{ query }}" />
+	<input type="submit" /> 
+	
+	<br />
+	
+	<input type="checkbox" name="opt_extended" id="extended"{% if options.extended %}checked="checked"{% endif %} />
+	<label for="extended">Experimental</label>
+</form>
+
+{% include "spinner/results.html" %}
