@@ -60,9 +60,17 @@ class Word(CommonBase):
 		def __unicode__(self):
 				return self.name
 
+		def get_synonyms(self):
+				"""Return a tuple of synonyms for this word."""
+
 
 class SynonymManager(models.Manager):
 
+		def get_synonyms(self, words):
+				"""Passed a tuple of words, a matrix of tuples containing synonyms is
+				returned"""
+
+				return tuple([self.get_all(word) for word in words])
 
 		def add(self, word_one, word_two, karma = None, update = None):
 				"""Lazily add two words as synonyms. If update, the karma's
@@ -74,7 +82,7 @@ class SynonymManager(models.Manager):
 				if update is None:
 						update = False
 
-				syn = self.get_single(word_one, word_two)
+				syn = self.get_single(word_one, word_two, True)
 
 				if isinstance(syn, Synonym):
 						if update:
@@ -92,19 +100,49 @@ class SynonymManager(models.Manager):
 
 				return syn
 
+
+		def get_all(self, word):
+				"""Return all synonyms for a word"""
+
+				word = Word.objects.get_single(word, True)
+
+				all = Synonym.objects.filter(
+						models.Q(word_one=word) | models.Q(word_two=word)
+				)
+
+				final = []
+				for syn in all:
+						if syn.word_one == word:
+								other_word = syn.word_two
+						else:
+								other_word = syn.word_one
+
+						other_word.total_karma = other_word.karma * syn.karma
+						final.append(other_word)
+
+				final.sort(key=lambda i: (i.total_karma))
+				final.reverse()
+
+				return final
+
+
 		def get_single(self, word_one, word_two, create = None):
-				"""Check to see if word_one, word_two or word_two, word_one match"""
+				"""Return a synonym regardless of order"""
 
 				if create is None:
 						create = False
 
+				word_one = Word.objects.get_single(word_one, True)
+				word_two = Word.objects.get_single(word_two, True)
+
 				syn = None
+
 				try:
 						syn = Synonym.objects.get(word_one=word_one, word_two=word_two)
-				except (MySQLdb.IntegrityError, Synonym.DoesNotExist):
+				except (Synonym.DoesNotExist):
 						try:
 								syn = Synonym.objects.get(word_one=word_two, word_two=word_one)
-						except (MySQLdb.IntegrityError, Synonym.DoesNotExist):
+						except (Synonym.DoesNotExist):
 								if create:
 										syn = Synonym(word_one=word_one, word_two=word_two)
 										syn.save()
@@ -132,8 +170,12 @@ class Synonym(CommonBase):
 				unique_together = ('word_one', 'word_two')
 
 		def save(self):
+				if self.word_one == self.word_two:
+						raise exceptions.Error("Can't have synonym to self")
+
 				if not self.created_date:
 						if Synonym.objects.exists(self.word_one, self.word_two):
 							raise exceptions.DuplicateError('Synonym already exists')
 
 				CommonBase.save(self)
+

@@ -5,49 +5,53 @@ from instockdomains import exceptions
 
 class Basic(unittest.TestCase):
 
-		'''
 		def testOneWord(self):
 				"""Test for one word. If you pass in 1 word you should get an array of
 				words back that are synonymous"""
 
-				word = ('mac')
-				synonyms = self.spinner.get_synonyms(word)
+				spinner.Synonym.objects.add('directory', 'catalog', 10)
+				spinner.Synonym.objects.add('list', 'directory', 20)
+				spinner.Synonym.objects.add('directory', 'guide', 10)
 
-				assert len(synonyms)
+				synonyms = spinner.Synonym.objects.get_synonyms(['directory'])
+				assert len(synonyms) < 3, synonyms
 
 		def testTwoWords(self):
 				"""Test for two words. If you pass in a tuple of word pairs you should
 				get a tuple of word pairs that are synonyms back"""
 
-				words = ('mac', 'tips')
-				synonyms = self.spinner.get_synoyms(words)
+				words = ['business', 'directory']
+				synonyms = spinner.Synonym.objects.get_synonyms(words)
 
 				assert len(synonyms)
 
-		def testFourWords(self):
-				"""Test for four words."""
+		def testKarma(self):
+				"""Test if karma is approrpriately working"""
 
-				words = ('mac', 'tips', 'tricks', 'hacks')
-				synonyms = self.spinner.get_synonyms(words)
+				spinner.Synonym.objects.add('directory', 'catalog', 10, True)
+				spinner.Synonym.objects.add('list', 'directory', 20, True)
+				spinner.Synonym.objects.add('directory', 'guide', 10, True)
 
-				assert len(synonyms)
+				synonyms = spinner.Synonym.objects.get_synonyms(['directory'])[0]
+				
+				for word in synonyms:
+						if word.total_karma < 10:
+								assert False, 'Karma was not recorded correctly'
 
-'''
+				
+
 		def testWords(self):
+				"""Test if we can add words individually"""
 
 				words = ['mac', 'tips', 'tricks', 'macintosh', 'help', 'hack']
 
 				for word in words:
-						ref = spinner.Word(name=word)
-						ref.save()
-
-						obj = spinner.Word.objects.get(name=word)
-						assert obj
-						del obj
-
+						ref = spinner.Word.objects.get_single(word, True)
+						assert isinstance(ref, spinner.Word)
 						ref.delete()
 
 		def testAddWords(self):
+				"""Test if we can add words in bulk"""
 
 				words = ['mac', 'tips', 'tricks', 'macintosh', 'help', 'hack']
 				spinner.Word.objects.add(words)
@@ -57,6 +61,7 @@ class Basic(unittest.TestCase):
 		
 
 		def testSynonym(self):
+				"""Test if creating synonyms is working"""
 
 				one = spinner.Word.objects.get_single('mac', True)
 				two = spinner.Word.objects.get_single('macintosh', True)
@@ -103,6 +108,7 @@ class Basic(unittest.TestCase):
 				
 
 		def testGetSingleWordCreate(self):
+				"""Check our get_single() for Word object"""
 
 				word = spinner.Word.objects.get_single('mac', True)
 				assert isinstance(word, spinner.Word), word
@@ -111,7 +117,6 @@ class Basic(unittest.TestCase):
 				word = spinner.Word.objects.get_single('mac', True)
 				assert isinstance(word, spinner.Word), word
 				word.delete()
-
 
 try:
 		suite = unittest.TestSuite(map(Basic, tests))
