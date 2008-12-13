@@ -1,5 +1,6 @@
 import unittest
-from instockdomains import wordle
+
+import wordle
 
 class Basic(unittest.TestCase):
 
@@ -7,12 +8,18 @@ class Basic(unittest.TestCase):
 				"""Test the clean function"""
 
 				phrase = 'this!@/.is!-a-!phrase'
-				assert 'thisisaphrase' == wordle.clean(phrase), wordle.clean(phrase)
+				assert 'this-is-a-phrase' == wordle.clean(phrase), wordle.clean(phrase)
 
-		def testGetSynonyms(self):
+		def testMatchSynonyms(self):
 				"""Test the get synonyms function"""
 
-				query = "mac tips"
+                query = "mac tips"
+                data = ['mac tips, tricks, hacks', 'mac users and stuff',
+                        'macintosh tips and apple tips',
+                        'osx tips, tricks, hacks']
+
+                wordle = wordle.TitleFolder()
+                wordle.match_synonyms(data, query)
 
 
 try:

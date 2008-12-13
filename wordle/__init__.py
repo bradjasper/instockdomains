@@ -23,21 +23,33 @@ class TitleFolder(object):
         """Take parts of data and deduce synonym relationships from them using a
         query. We call this folding."""
 
-        query = query.split()
-        max = len(query)
+        for phrase in data:
+            print self.match_synonyms(phrase, query)
+
+
+    def match_synonyms(self, data, query):
+        """Match all of a query's synonyms in a phrase.
+        
+        THIS ISN"T WORKING"""
+
+        query_parts = query.split()
+        max = len(query_parts)
+
         for i in xrange(max):
-            for phrase in data:
-                print "!!", phrase
+            for part in data:
+
                 if i == 0:
-                    regex = '%s (\w+)' % query[i]
-                    matches = re.findall(regex, phrase)
-                    if matches:
-                        # Add Synonyms
-                        pprint.pprint(matches)
-                
+                    regex = '%s (\w+)'
+                elif i == max:
+                    regex = '(\w+) %s'
+                else:
+                    regex = '(\w+) %s (\w+)'
 
+                regex = regex % query_parts[i]
 
+                matches = re.findall(regex, part)
 
+                print (query_parts[i], matches)
 
     def check_data(self, data):
         """Check if data is valid. Used for filter functions"""
