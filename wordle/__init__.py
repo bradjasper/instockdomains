@@ -19,37 +19,26 @@ class TitleFolder(object):
     """The TitleFolder takes a list of datas and generates a list of synonyms
     based on context. Try to keep this as magic free as possible."""
 
-    def fold_data(self, parts, query):
+    def fold_data(self, data, query):
         """Take parts of data and deduce synonym relationships from them using a
         query. We call this folding."""
 
-        def _inc(bank, key):
-            value = bank.get(key, 0)
-            value += 1
-            return value
-            
+        query = query.split()
+        max = len(query)
+        for i in xrange(max):
+            for phrase in data:
+                print "!!", phrase
+                if i == 0:
+                    regex = '%s (\w+)' % query[i]
+                    matches = re.findall(regex, phrase)
+                    if matches:
+                        # Add Synonyms
+                        pprint.pprint(matches)
+                
 
-        query_parts = query.split()
 
-        max = len(query_parts)
 
-        bank = {}
-        for i, query in enumerate(query_parts):
-            for title in parts:
-                for part in title:
-                    words = part.split()
-                    for x, word in enumerate(words):
 
-                        # ex. mac == mac
-                        try:
-                            if word == query:
-                                bank[query_parts[i+1]] = _inc(bank, words[x+1])
-                        except IndexError:
-                            pass
-
-        pprint.pprint(bank)
-                            
-                       
     def check_data(self, data):
         """Check if data is valid. Used for filter functions"""
 
@@ -66,7 +55,6 @@ class TitleFolder(object):
         parts = re.split('\s(\-|\|)\s', data)
         parts = [clean(part) for part in parts]
         data = filter(self.check_data, parts)
-
         return data
 
 
@@ -75,7 +63,9 @@ class TitleFolder(object):
 
         log.debug("Getting informatino from synonyms (%s) - %s", query, data)
 
-        parts = [self.fix_data(part) for part in data]
+        parts = []
+        # Evil. Muwahaha.
+        [parts.extend(part) for part in [self.fix_data(part) for part in data]]
 
         log.debug("Got parts for synonyms (%s) - %s", query, parts)
 
